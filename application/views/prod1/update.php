@@ -80,10 +80,7 @@
 							<td align='right'>1</td>
 							<td align='right'>".number($data['lulus'])."</td>
 							<td>liter</td>
-							
 							<td align='right'>".format_rp($subtotal)."</td>"; ?>
-							
-
 						</tr>
 						
 					<?php

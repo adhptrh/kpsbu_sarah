@@ -18,12 +18,12 @@
 			
 			</div>
 
-			<div class="form-group">
+			<div class="form-group hidden">
 				<label for="jenis_penjualan">Jenis Produk</label>
-				<select name="jenis_penjualan" id="jenis_penjualan" class="form-control" required>
+				<select hidden name="jenis_penjualan" id="jenis_penjualan" class="form-control" required>
 					<option value="">-</option>
 					<?php foreach ($jenis_penjualan as $key => $value) { ?>
-					<option value="<?= $value->id?>"><?= $value->desc?></option>
+					<option selected value="<?= $value->id?>"><?= $value->desc?></option>
 					<?php } ?>
 				</select>
 			</div>

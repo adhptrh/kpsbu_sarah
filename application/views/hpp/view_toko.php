@@ -154,7 +154,7 @@
 			<tr>
 				<td>Jumlah Harga Pokok Penjualan</td>
 				<td align ='right'></td>
-				<td align ='right'><?php echo format_rp($produk_siap_dijual+$akhir_hpp)?></td>
+				<td align ='right'><?php echo format_rp($hpptoko)?></td>
 			</tr>
 			</tbody>
 		</table>

@@ -164,9 +164,9 @@
                         <li><a href="<?php echo site_url(); ?>c_transaksi/lihat_pembyv">Pembayaran Beban Variabel</a></li>
                         <li><a href="<?php echo site_url(); ?>c_transaksi/simpanan_hr">Simpanan Hari Raya</a></li>
                         <li><a href="<?php echo site_url(); ?>c_transaksi/pinjaman">Pinjaman</a></li>
-                        <li><a href="<?= base_url('penjualan/susu')?>">Penjualan Susu</a></li>
+                        <!-- <li><a href="<?= base_url('penjualan/susu')?>">Penjualan Susu</a></li> -->
                         <!-- <li><a href="<?= base_url('penjualan/pakan_konsentrat')?>">Penjualan Pakan Konsentrat</a></li> -->
-                        <li><a href="<?= base_url('penjualan/pengolahan_susu')?>">Penjualan Pengolahan Susu</a></li>
+                        <!-- <li><a href="<?= base_url('penjualan/pengolahan_susu')?>">Penjualan Pengolahan Susu</a></li> -->
 
                         <!-- sarah -->
                         <li><a href="<?= base_url('shu')?>">SHU</a></li>

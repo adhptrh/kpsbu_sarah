@@ -1791,6 +1791,7 @@ ORDER BY a.no ASC";
 	public function hpp_toko()
 	{
 
+
 		if (isset($_POST['bulan'], $_POST['tahun'])) {
 			$bulan = $_POST['bulan'];
 			$tahun = $_POST['tahun'];
@@ -1840,7 +1841,7 @@ ORDER BY a.no ASC";
 			$data['produk_siap_dijual'] = $produk_siap_dijual;
 
 			$akhir_hpp = $produk_siap_dijual - $hpptoko;
-			$data['akhir_hpp'] = $awal_hpp;
+			$data['akhir_hpp'] = $akhir_hpp;
 		} else {
 
 
@@ -1892,9 +1893,9 @@ ORDER BY a.no ASC";
 			$data['produk_siap_dijual'] = $produk_siap_dijual;
 
 			$akhir_hpp = $produk_siap_dijual - $hpptoko;
-			$data['akhir_hpp'] = $awal_hpp;
-			;
+			$data['akhir_hpp'] = $akhir_hpp;
 		}
+
 
 
 		$this->template->load('template', 'hpp/view_toko', $data);
