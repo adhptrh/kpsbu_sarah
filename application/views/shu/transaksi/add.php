@@ -15,8 +15,8 @@
                     <p>Pembagian SHU</p>
                     <select name="opsi_pembagian_shu" id="pembagian_shu" class="form-control" required>
                         <option selected disabled value>Pilih</option>
-                        <option value="anggota70">SHU dibagikan ke anggota 70%</option>
-                        <option value="shuthnselanjutnya30">SHU untuk tahun selanjutnya 30%</option>
+                        <option value="anggota70">SHU dibagikan ke anggota 65%</option>
+                        <option value="shuthnselanjutnya30">SHU untuk tahun selanjutnya 35%</option>
                     </select>
                 </div>
                 <div id="inp">
@@ -86,7 +86,7 @@
                     foreach ($shu as $key => $value) { ?>
                     <?php
                         $persentase1 = ($value->persentase/100);
-                        $total1 = $persentase1 * $nominal_shu*0.7;
+                        $total1 = $persentase1 * $nominal_shu*0.65;
                     ?>
                     <input type="hidden" value="<?= $value->deskripsi ?>" name="uraian[]">
                     <input type="hidden" value="<?= round($total1) ?>" name="total[]">
@@ -98,13 +98,13 @@
                     $total = 0;
                     foreach ($shu as $key => $item) { 
                         $persentase = ($item->persentase/100);
-                        $total = $persentase * ($nominal_shu*0.7);
+                        $total = $persentase * ($nominal_shu*0.65);
                         ?>
                         <tr>
                             <td><?= $key+1 ?></td>
                             <td><?= $item->deskripsi?></td>
                             <td><?= $item->persentase?></td>
-                            <td><?= format_rp($nominal_shu*0.7) ?></td>
+                            <td><?= format_rp($nominal_shu*0.65) ?></td>
                             <td><?= format_rp($total)?></td>
                         </tr>
                     <?php } ?>
@@ -116,7 +116,7 @@
                     foreach ($shu as $key => $value) { ?>
                     <?php
                         $persentase1 = ($value->persentase/100);
-                        $total1 = $persentase1 * $nominal_shu*0.3;
+                        $total1 = $persentase1 * $nominal_shu*0.35;
                     ?>
                     <input type="hidden" value="<?= $value->deskripsi ?>" name="uraian[]">
                     <input type="hidden" value="<?= round($total1) ?>" name="total[]">
@@ -127,13 +127,13 @@
                     $total = 0;
                     foreach ($shu as $key => $item) { 
                         $persentase = ($item->persentase/100);
-                        $total = $persentase * ($nominal_shu*0.3);
+                        $total = $persentase * ($nominal_shu*0.35);
                         ?>
                         <tr>
                             <td><?= $key+1 ?></td>
                             <td><?= $item->deskripsi?></td>
                             <td><?= $item->persentase?></td>
-                            <td><?= format_rp($nominal_shu*0.3) ?></td>
+                            <td><?= format_rp($nominal_shu*0.35) ?></td>
                             <td><?= format_rp($total)?></td>
                         </tr>
                     <?php } ?>

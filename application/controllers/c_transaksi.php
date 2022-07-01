@@ -1745,7 +1745,15 @@
             $no_produk = $_POST['no_prod'];
             $this->isi_edit_pembagian($id);
          } else {
-            // echo "<pre>"; print_r($_POST); echo "</pre>"; die();
+            //echo "<pre>"; print_r($_POST); echo "</pre>"; die();
+
+
+            $stokbahanbaku = $this->db->query("SELECT * FROM bahan_baku WHERE nama_bb = 'Susu Sapi'")->result()[0];
+            $this->db->update("bahan_baku", [
+               "stok"=>$stokbahanbaku->stok + $this->input->post("jumlah")
+            ], [
+               "nama_bb"=>"Susu Sapi"
+            ]);
 
             $id = $_POST['no_trans'];
             $tgl = $_POST['tgl_trans'];
@@ -3074,8 +3082,6 @@ group by no_bbp";
          $this->M_keuangan->GenerateJurnal('6111', $id, 'd', $hpp);
          $this->M_keuangan->GenerateJurnal('1311', $id, 'k', $hpp);
 
-
-
          $data = array(
             'no_trans' => $id,
             'tgl_trans' => date('Y-m-d H:i:s'),
@@ -3468,10 +3474,10 @@ group by no_bbp";
             "nominal"=>$total
          ]);
 
-         /* $this->M_keuangan->GenerateJurnal('1111', $id, 'd', $total);
+         $this->M_keuangan->GenerateJurnal('1111', $id, 'd', $total);
          $this->M_keuangan->GenerateJurnal('4112', $id, 'k', $total);
          $this->M_keuangan->GenerateJurnal('6112', $id, 'd', $fix_total);
-         $this->M_keuangan->GenerateJurnal('1312', $id, 'k', $fix_total); */
+         $this->M_keuangan->GenerateJurnal('1312', $id, 'k', $fix_total);
 
 
          redirect('c_transaksi/lihat_penjt');
