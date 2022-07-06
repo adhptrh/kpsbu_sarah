@@ -2048,9 +2048,10 @@ ORDER BY a.no ASC";
 			"no_coa"=>1300,
 			"keterangan"=>$this->db->query("SELECT * FROM coa WHERE no_coa = '1300'")->row()->nama_coa,
 			"debit"=>null,
-			"kredit"=>$laporan_shu["penjualan_waserda"],
+			"kredit"=>$laporan_shu["penjualan_waserda"] ?? "0",
 		]);
 		$totalkredit += $laporan_shu["penjualan_waserda"];
+
 		array_push($jurnalpenutup, [
 			"tanggal"=>date("Y-m-d"),
 			"no_coa"=>1300,

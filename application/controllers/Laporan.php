@@ -148,6 +148,10 @@ class Laporan extends CI_Controller
                 if ($coa->saldo_normal == "k") {
                     $data["nominal"] = 0 - $data["nominal"];
                 }
+                /* if ($coa->no_coa == '1312') {
+                    echo $coa->no_coa;
+                    $data["nominal"] = 0-$data["nominal"];
+                } */
                 array_push($list, (object)$data);
             }
             $q = "SELECT a.no_coa, b.nama_coa, a.posisi_dr_cr, b.header, a.nominal FROM jurnal a LEFT JOIN coa b ON b.no_coa = a.no_coa WHERE b.is_neraca = 1 AND a.no_coa = '1312'";

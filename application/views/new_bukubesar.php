@@ -80,14 +80,17 @@
 							<?php }?>
 							<td class="text-right"><?= format_rp($saldo_awal)?></td>
                         </tr>
-                        <?php if (substr($item->id_jurnal,0,5) == "PENJS") { 
+                        <?php if (
+                            substr($item->id_jurnal,0,5) == "PENJS" && $item->no_coa == '4111' ||
+                            substr($item->id_jurnal,0,5) == "PENJT" && $item->no_coa == '4112'
+                            ) { 
                             $saldo_awal -= $item->nominal;?>
                             <tr>
                                 <td><?= $item->tgl_jurnal ?></td>
                                 <td><?= "Ikhtisar Laba Rugi" ?></td>
                                 <td><?= "1300" ?></td>
-                                <td></td>
                                 <td class="text-right"><?= format_rp($item->nominal) ?></td>
+                                <td></td>
                                 <td class="text-right"><?= format_rp($saldo_awal) ?></td>
                             </tr>
                         <?php } ?>
