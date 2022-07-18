@@ -16,10 +16,17 @@
                 </div>
             </div>
             <div class="x_content">
+                <form action="<?= base_url("Shu/simpan_pengajuan_jurnal_jasa_anggota") ?>" method="post">
                 <div id="notif">
                     <?php echo $this->session->flashdata('notif_ubah'); ?>
                 </div>
                 <div class="table-responsive">
+                    <?php
+                    echo '<input type="hidden" name="id_trans_total" value="'.$kode_total.'">';
+                    foreach ($list as $k=>$v) {
+                        echo '<input type="hidden" name="id_trans[]" value="'.$v->id_trans.'">';
+                    }
+                    ?>
                     <table class="table table-bordered" id="datatable">
                         <thead>
                             <tr>
@@ -65,6 +72,8 @@
                         </tfoot>
                     </table>
                 </div>
+                <button class="btn btn-primary">Simpan Pengajuan Jurnal</button>
+                </form>
             </div>
         </div>
     </div>

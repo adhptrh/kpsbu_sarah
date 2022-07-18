@@ -45,7 +45,7 @@ class Shu extends CI_Controller
         $penjualan_toko = $this->db->query("SELECT SUM(total) as total_penjualan FROM penjualan_toko WHERE tgl_trans LIKE '".date("Y")."%'")->result()[0]->total_penjualan;
         $hpp_toko = $this->db->query("SELECT ifnull(sum(nominal),0) as hpp
         FROM jurnal
-        WHERE posisi_dr_cr = 'd' AND no_coa = '6112' AND id_jurnal LIKE 'PENJS%' AND YEAR(tgl_jurnal) = '".date("Y")."'")->result()[0]->hpp;
+        WHERE posisi_dr_cr = 'd' AND no_coa = '6112' AND id_jurnal LIKE 'PENJT%' AND YEAR(tgl_jurnal) = '".date("Y")."'")->result()[0]->hpp;
 
         $penjualan_waserda = $this->db->query("SELECT SUM(nominal) as total_nominal FROM jurnal WHERE no_coa = '4116' AND YEAR(tgl_jurnal) = '".date("Y")."'")->result()[0]->total_nominal;
         $hpp_waserda = $this->db->query("SELECT SUM(nominal) AS nominal, b.nama_coa, a.posisi_dr_cr
@@ -91,6 +91,7 @@ class Shu extends CI_Controller
         $kode_shu = $this->input->post('kode_shu');
         $uraian = $this->input->post('uraian');
         $total = $this->input->post('total');
+        $p35 = $this->input->post('p35');
         $opsi_pembagian_shu = $this->input->post("opsi_pembagian_shu");
 
         $grandtot = 0;
@@ -102,6 +103,7 @@ class Shu extends CI_Controller
             'kode_shu' => $kode_shu,
             'tanggal' => date('Y-m-d'),
             'nominal' => $grandtot,
+            'tahunselanjutnya' => $p35,
             'status' => 2
         ];
         $this->db->insert('transaksi_shu', $shu);
@@ -118,20 +120,21 @@ class Shu extends CI_Controller
         $this->db->insert_batch('detail_transaksi_shu', $detail);
         // print_r($detail);exit;
 
-        // // kirim ke db pengajuan jurnal 
-        // $pengajuan = [
-        //     'kode' => $kode_shu,
-        //     'tanggal' => date('Y-m-d'),
-        //     'nominal' => $grandtot,
-        //     'jenis' => 'transaksi shu',
-        // ];
-        // $this->db->insert("pengajuan_jurnal", $pengajuan);
+        // kirim ke db pengajuan jurnal 
+        $pengajuan = [
+            'kode' => $kode_shu,
+            'tanggal' => date('Y-m-d'),
+            'nominal' => $p35,
+            'jenis' => 'SHU Ditahan',
+        ];
+        $this->db->insert("pengajuan_jurnal", $pengajuan);
         redirect('shu');
     }
 
     public function jasa_anggota()
     {
         $kode = $this->M_transaksi->pembagian_kode();
+        $kode_total = $this->M_transaksi->pembagian_kode_total();
         $cek_tahun = date('Y');
 
         $anggota = $this->db->query("SELECT z.no_peternak, z.nama_peternak, x.*
@@ -160,12 +163,59 @@ class Shu extends CI_Controller
 
         $data = [
             'kode' => $kode,
+            'kode_total' => $kode_total,
             'list' => $list,
             'anggota' => $anggota,
             'cek' => $cek,
             'total_shu' => $total_shu
         ];
         $this->template->load('template', 'shu/jasa_anggota/index', $data);
+    }
+
+    public function laporan_pembagian_shu()
+    {
+        $no_anggota = $this->input->get("no_anggota") ?? "nulll";
+        $kode = $this->M_transaksi->pembagian_kode();
+        $kode_total = $this->M_transaksi->pembagian_kode_total();
+        $cek_tahun = date('Y');
+
+        $anggota = $this->db->query("SELECT z.no_peternak, z.nama_peternak, x.*
+        FROM peternak z
+        LEFT JOIN (
+            SELECT a.tanggal, a.id_trans, a.id_anggota, a.jasa_modal, a.jasa_anggota, a.sisa_hasil_usaha
+            FROM pembagian_shu a
+            JOIN peternak b ON a.id_anggota = b.no_peternak
+            WHERE YEAR(tanggal) = '$cek_tahun'
+        ) AS x ON x.id_anggota = z.no_peternak
+        WHERE z.is_deactive = 0
+        AND tanggal IS NULL 
+        ")->result();
+
+        $anggotas = $this->db->query("SELECT * FROM peternak")->result();
+
+        $list = $this->db->query("SELECT a.*, b.nama_peternak
+        FROM pembagian_shu a
+        JOIN peternak b ON a.id_anggota = b.no_peternak WHERE b.no_peternak = '$no_anggota'")->result();
+
+        $total_shu = $this->db->query("SELECT SUM(sisa_hasil_usaha) AS shu
+        FROM pembagian_shu a
+        JOIN peternak b ON a.id_anggota = b.no_peternak")->row()->shu;
+
+        $cek = $this->db->get('transaksi_shu')->num_rows();
+        // print_r($cek);exit;
+
+
+        $data = [
+            'kode' => $kode,
+            'kode_total' => $kode_total,
+            'list' => $list,
+            'anggota' => $anggota,
+            'cek' => $cek,
+            'total_shu' => $total_shu,
+            'no_anggota'=>$no_anggota,
+            "anggotas"=>$anggotas,
+        ];
+        $this->template->load('template', 'laporan/pembagian_shu', $data);
     }
 
     public function get_data_jasa_anggota()
@@ -233,13 +283,13 @@ class Shu extends CI_Controller
         $this->db->insert('pembagian_shu', $data);
 
         // pengajuan jurnal 
-        $pengajuan_jurnal = [
+        /* $pengajuan_jurnal = [
             'kode' => $kode,
             'tanggal' => date('Y-m-d'),
             'nominal' => $sisa_hasil_usaha,
             'jenis' => 'pembagian shu',
         ];
-        $this->db->insert('pengajuan_jurnal', $pengajuan_jurnal);
+        $this->db->insert('pengajuan_jurnal', $pengajuan_jurnal); */
 
         redirect('shu/jasa_anggota');
     }
@@ -280,7 +330,7 @@ class Shu extends CI_Controller
         $penjualan_toko = $this->db->query("SELECT SUM(total) as total_penjualan FROM penjualan_toko WHERE tgl_trans LIKE '$tahun%'")->result()[0]->total_penjualan;
         $hpp_toko = $this->db->query("SELECT ifnull(sum(nominal),0) as hpp
         FROM jurnal
-        WHERE posisi_dr_cr = 'd' AND no_coa = '6112' AND id_jurnal LIKE 'PENJS%' AND YEAR(tgl_jurnal) = '$tahun'")->result()[0]->hpp;
+        WHERE posisi_dr_cr = 'd' AND no_coa = '6112' AND id_jurnal LIKE 'PENJT%' AND YEAR(tgl_jurnal) = '$tahun'")->result()[0]->hpp;
 
         $penjualan_waserda = $this->db->query("SELECT SUM(nominal) as total_nominal FROM jurnal WHERE no_coa = '4116' AND YEAR(tgl_jurnal) = '$tahun'")->result()[0]->total_nominal;
         $hpp_waserda = $this->db->query("SELECT SUM(nominal) AS nominal, b.nama_coa, a.posisi_dr_cr
@@ -314,6 +364,32 @@ class Shu extends CI_Controller
         ];
         // print_r($data);exit;
         $this->template->load('template', 'shu/laporan_shu/index', $data);
+    }
+
+    public function simpan_pengajuan_jurnal_jasa_anggota() {
+        var_dump($_POST);
+        $this->db->insert("pembagian_shu_total", [
+            "id_trans"=>$this->input->post("id_trans_total")
+        ]);
+
+        $totalnominal = 0;
+
+        foreach ($this->input->post("id_trans") as $pembagian_shu) {
+            $totalnominal += $this->db->query("SELECT sisa_hasil_usaha FROM pembagian_shu WHERE id_trans = '$pembagian_shu'")->row()->sisa_hasil_usaha;
+            $this->db->set("id_trans_total", $this->input->post("id_trans_total"));
+            $this->db->where("id_trans", $pembagian_shu);
+            $this->db->update("pembagian_shu");
+        }
+
+        $pengajuan = [
+            'kode' => $this->input->post("id_trans_total"),
+            'tanggal' => date('Y-m-d'),
+            'nominal' => $totalnominal,
+            'jenis' => 'SHU Tahun Berjalan',
+        ];
+        $this->db->insert("pengajuan_jurnal", $pengajuan);
+
+        redirect("shu/jasa_anggota");
+    }
+
 }
-}
-?>

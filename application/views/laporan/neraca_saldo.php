@@ -65,20 +65,20 @@
                             foreach ($list as $key => $value) { ?>
                             <?php 
                             if ($value->saldo_normal =='d') {
-                                $jumlah_debit += $value->debit - $value->kredit;
+                                $jumlah_debit += $value->nominal;
                             } else {
-                                $jumlah_kredit += $value->kredit - $value->debit;
+                                $jumlah_kredit += $value->nominal;
                             }
                             ?>
                             <tr>
                                 <td><?= $value->no_coa?></td>
                                 <td><?= $value->nama_coa?></td>
                                 <?php if ($value->saldo_normal == 'd') { ?>
-                                <td class="text-right"><?= format_rp($value->debit - $value->kredit)?></td>
+                                <td class="text-right"><?= format_rp($value->nominal)?></td>
                                 <td class="text-right"></td>
                                 <?php } else { ?>
                                 <td class="text-right"></td>
-                                <td class="text-right"><?= format_rp($value->kredit - $value->debit)?></td>
+                                <td class="text-right"><?= format_rp($value->nominal)?></td>
                                 <?php } ?>
                             </tr>
                             <?php } ?>

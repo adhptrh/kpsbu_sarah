@@ -169,7 +169,7 @@
                         <!-- <li><a href="<?= base_url('penjualan/pengolahan_susu')?>">Penjualan Pengolahan Susu</a></li> -->
 
                         <!-- sarah -->
-                        <li><a href="<?= base_url('shu')?>">SHU</a></li>
+                        <li><a href="<?= base_url('shu')?>">Transaksi SHU</a></li>
                         <li><a href="<?= base_url('shu/jasa_anggota')?>">Pembagian SHU</a></li>
                         <!-- <li><a href="<?= base_url('penjualan/harga_pokok')?>">Harga Pokok Penjualan</a></li> -->
 
@@ -225,6 +225,7 @@
                     <ul class="nav child_menu">
                     <?php if ($this->session->userdata('level') == "keuangan" or $this->session->userdata('level') == "admin") : ?>
                         <li><a href="<?php echo site_url(); ?>c_keuangan/view_jurnal">Jurnal</a></li>
+                        <li><a href="<?php echo site_url(); ?>c_keuangan/view_jurnal_penutup">Jurnal Penutup</a></li>
                         <li><a href="<?php echo site_url(); ?>c_keuangan/bukubesar">Buku Besar</a></li>
 
                         <li><a href="<?php echo site_url(); ?>Laporan/neraca_saldo">Neraca Saldo</a></li>
@@ -233,6 +234,7 @@
                         <!-- laporan sarah -->
                         <li><a href="<?php echo site_url(); ?>laporan/laporan_simpanan">Laporan Simpanan</a></li>
                         <li><a href="<?php echo site_url(); ?>shu/laporan">Laporan SHU</a></li>
+                        <li><a href="<?php echo site_url(); ?>shu/laporan_pembagian_shu">Laporan Pembagian SHU</a></li>
                         <!--  -->
 
                         <li><a href="<?php echo site_url(); ?>simpanan/laporan_setoran_anggota">Laporan Setoran Susu Anggota</a></li>

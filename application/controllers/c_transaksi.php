@@ -2545,6 +2545,17 @@ group by no_bbp";
       public function selesai_produksi_ke2($bbb, $btk, $bop, $bp, $id, $no_tp, $no_prod, $jumlah)
       {
          date_default_timezone_set('Asia/Jakarta');
+         /* $bbop = $bop + $bp;
+         $pbj = $bbb + $btk + $bbop;
+         echo "<pre>";
+         var_dump([
+            "pbj" => $pbj,
+            "bbb" => $bbb,
+            "btk" => $btk,
+            "bbop" => $bbop,
+         ]);
+         echo "</pre>";
+         return; */
          //update stok bahan penolong
          $query1 =   "
                   SELECT nama_bp, sum(a.jumlah) * c.jumlah as jumlah_bom, no_bbp
@@ -2762,10 +2773,14 @@ group by no_bbp";
 
 
          //jurnal persediaan jadi
-         $this->M_keuangan->GenerateJurnal('1312', $id, 'd', $pbj);
-         $this->M_keuangan->GenerateJurnal('1114', $id, 'k', $bbb);
-         $this->M_keuangan->GenerateJurnal('5112', $id, 'k', $btk);
-         $this->M_keuangan->GenerateJurnal('5113', $id, 'k', $bbop);
+         $this->M_keuangan->GenerateJurnal('1312', $id, 'd', strval(round($pbj)));
+         $this->M_keuangan->GenerateJurnal('1114', $id, 'k', strval(round($bbb)));
+         $this->M_keuangan->GenerateJurnal('5112', $id, 'k', strval(round($btk)));
+         $this->M_keuangan->GenerateJurnal('5113', $id, 'k', strval(round($bbop)));
+         var_dump(strval(round($pbj)));
+         var_dump(strval(round($bbb)));
+         var_dump(strval(round($btk)));
+         var_dump(strval(round($bbop)));
 
 
          //update harga jual produk
@@ -2783,7 +2798,7 @@ group by no_bbp";
          $this->db->update('produk');
 
 
-         redirect('c_transaksi/isi_edit_produksi_ke21/' . $id . '');
+         //redirect('c_transaksi/isi_edit_produksi_ke21/' . $id . '');
       }
 
       //PENJUALAN
@@ -3466,13 +3481,13 @@ group by no_bbp";
          $q1 = "SELECT ifnull(sum(total2),0) as hpp FROM kartu_stok_penj WHERE no_trans ='$id'";
          $fix_total = $this->db->query($q1)->row_array()["hpp"];
          
-         $this->db->insert("pengajuan_jurnal", [
+         /* $this->db->insert("pengajuan_jurnal", [
             "kode" => $id,
             "tanggal" => date("Y-m-d"),
             "status" => "pending",
             "jenis"=>"SHU Tahun Berjalan",
             "nominal"=>$total
-         ]);
+         ]); */
 
          $this->M_keuangan->GenerateJurnal('1111', $id, 'd', $total);
          $this->M_keuangan->GenerateJurnal('4112', $id, 'k', $total);
@@ -5086,17 +5101,108 @@ group by no_bbp";
                'keterangan' => 'Pembayaran Gaji', 
             ];
             $this->db->insert('buku_pembantu_kas', $bpk);
+            
+            /** transaksi gaji */
+
+            $pengajuan_jurnal = [
+               'status' => 'selesai',
+               'tgl_approve' => date('Y-m-d H:i:s')
+            ];
+            $this->db->where('kode', $kode);
+            $this->db->update('pengajuan_jurnal', $pengajuan_jurnal);
+
+            $debit = [
+               'id_jurnal' => $kode,
+               'tgl_jurnal' => $tanggal,
+               'no_coa' => 5311,
+               'posisi_dr_cr' => 'd',
+               'nominal' => $nominal,
+            ];
+            $this->db->insert('jurnal', $debit);
+
+            $kredit = [
+               'id_jurnal' => $kode,
+               'tgl_jurnal' => $tanggal,
+               'no_coa' => 1111,
+               'posisi_dr_cr' => 'k',
+               'nominal' => $nominal,
+            ];
+            $this->db->insert('jurnal', $kredit);
+
+            // buku pembantu kas
+            $bpk = [
+               'id_ref' => $kode, 
+               'tanggal' => $tanggal, 
+               'nominal' => $nominal, 
+               'kd_coa' => 1111, 
+               'posisi_dr_cr' => 'k', 
+               'keterangan' => 'Pembayaran Gaji', 
+            ];
+            $this->db->insert('buku_pembantu_kas', $bpk);
+         } else if (strpos($kode, "PMBGSHU.TOTAL") !== false) {
+            $debit = [
+               'id_jurnal' => $kode,
+               'tgl_jurnal' => $tanggal,
+               'no_coa' => 3300,
+               'posisi_dr_cr' => 'd',
+               'nominal' => $nominal,
+            ];
+            $this->db->insert('jurnal', $debit);
+            $kredit = [
+               'id_jurnal' => $kode,
+               'tgl_jurnal' => $tanggal,
+               'no_coa' => 1111,
+               'posisi_dr_cr' => 'k',
+               'nominal' => $nominal,
+            ];
+            $this->db->insert('jurnal', $kredit);
+            
+            $pengajuan_jurnal = [
+               'status' => 'selesai',
+               'tgl_approve' => date('Y-m-d H:i:s')
+            ];
+            $this->db->where('kode', $kode);
+            $this->db->update('pengajuan_jurnal', $pengajuan_jurnal);
+         } else if (strpos($kode, "SHU") !== false) {
+            $debit = [
+               'id_jurnal' => $kode,
+               'tgl_jurnal' => $tanggal,
+               'no_coa' => 3200,
+               'posisi_dr_cr' => 'd',
+               'nominal' => $nominal,
+            ];
+            $this->db->insert('jurnal', $debit);
+            $kredit = [
+               'id_jurnal' => $kode,
+               'tgl_jurnal' => $tanggal,
+               'no_coa' => 3100,
+               'posisi_dr_cr' => 'k',
+               'nominal' => $nominal,
+            ];
+            $this->db->insert('jurnal', $kredit);
+            
+            $pengajuan_jurnal = [
+               'status' => 'selesai',
+               'tgl_approve' => date('Y-m-d H:i:s')
+            ];
+            $this->db->where('kode', $kode);
+            $this->db->update('pengajuan_jurnal', $pengajuan_jurnal);
          } else if (strpos($kode, "PENJT_") !== false) {
             $detail_penjualan_toko = $this->db->query("SELECT * FROM detail_penjualan_toko WHERE no_trans = '$kode'")->result();
-            $penjualan_toko = $this->db->query("SELECT total FROM penjualan_toko WHERE no_trans = '$kode'")->result()[0];
+            $penjualan_toko = $this->db->query("SELECT total,tgl_trans FROM penjualan_toko WHERE no_trans = '$kode'")->result()[0];
+            $bulan = explode("-",$penjualan_toko)[1];
+            $tahun = explode("-",$penjualan_toko)[0];
+            $qhpp0 =  "SELECT ifnull(sum(total2),0) as hpp
+					FROM kartu_stok_penj 
+					WHERE  MONTH(tgl_trans) = '$bulan' AND YEAR(tgl_trans) = '$tahun' AND no_trans LIKE 'PENJT_%'";
+			   $hpptoko = $this->db->query($qhpp0)->row_array()['hpp'];
             $q1 = "SELECT ifnull(sum(total2),0) as hpp FROM kartu_stok_penj WHERE no_trans ='$kode'";
-            $fix_total = $this->db->query($q1)->row_array()['hpp'];
+            $fix_total = $this->db->query($qhpp0)->row_array()['hpp'];
 
             $this->M_keuangan->GenerateJurnal('1111', $kode, 'd', $penjualan_toko->total);
             $this->M_keuangan->GenerateJurnal('4112', $kode, 'k', $penjualan_toko->total);
-            $this->M_keuangan->GenerateJurnal('6112', $kode, 'd', $penjualan_toko->total);
+            $this->M_keuangan->GenerateJurnal('6112', $kode, 'd', $hpptoko);
             $this->M_keuangan->GenerateJurnal('1312', $kode, 'k', $penjualan_toko->total);
-
             $this->db->update("pengajuan_jurnal", ['status' => 'selesai', 'tgl_approve' => date('Y-m-d')], ['kode' => $kode]);
 
          } else if (strpos($kode, 'PMB-KR') !== false ) {

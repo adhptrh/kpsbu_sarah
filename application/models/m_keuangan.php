@@ -14,6 +14,19 @@ class m_keuangan extends CI_model
 		);
 		$this->db->insert('jurnal', $jurnal);
 	}
+	
+	public function GenerateJurnalPenutup($no_akun, $no_transaksi, $posisi_dr_cr, $nominal)
+	{
+		date_default_timezone_set("Asia/Bangkok");
+		$jurnal = array(
+			'id_jurnal' => $no_transaksi,
+			'tgl_jurnal' => date('Y-m-d'),
+			'no_coa' => $no_akun,
+			'posisi_dr_cr' => $posisi_dr_cr,
+			'nominal' => $nominal,
+		);
+		$this->db->insert('jurnal_penutup', $jurnal);
+	}
 
 	public function GenerateLaporanBPK($kode, $tanggal, $nominal, $nocoa, $poskas, $keterangan) 
 	{

@@ -96,17 +96,65 @@ class Laporan extends CI_Controller
         $this->template->load('template', 'shu/laporan_penjualan_shu/index', $data);
     }
 
+   /*  public function neraca_saldo()
+    {
+        $bulan = $this->input->post('bulan');
+        $tahun = $this->input->post('tahun');
+        $periode = $tahun.'-'.$bulan;
+        $saldo_awal = $this->db->query("SELECT * FROM coa WHERE no_coa = '1111'")->result()[0]->saldo_awal;
+
+        if (isset($periode)) {
+            $list = $this->Laporan_model->neracaSaldo($periode)->result();
+            echo "<pre>";
+            var_dump($list);
+            echo "</pre>";
+            $data = [
+                'list' => $list,
+                'periode' => $periode,
+                'saldo_awal' => $saldo_awal,
+            ];
+            $this->template->load('template', 'laporan/neraca_saldo', $data);
+        } 
+    } */
+
     public function neraca_saldo()
     {
         $bulan = $this->input->post('bulan');
         $tahun = $this->input->post('tahun');
         $periode = $tahun.'-'.$bulan;
+        $saldo_awal = $this->db->query("SELECT * FROM coa WHERE no_coa = '1111'")->result()[0]->saldo_awal;
 
         if (isset($periode)) {
-            $list = $this->Laporan_model->neracaSaldo($periode)->result();
+            $list = [];
+            $qgetcoa = "SELECT * FROM coa WHERE is_neraca = 1";
+            $coas = $this->db->query($qgetcoa)->result();
+            foreach ($coas as $coa) {
+                $data = [
+                    "no_coa"=>$coa->no_coa,
+                    "nama_coa"=>$coa->nama_coa,
+                    "header"=>$coa->header,
+                    "saldo_normal"=>$coa->saldo_normal,
+                    "nominal"=>0,
+                ];
+                $qgetjurnalitem = "SELECT a.no_coa, b.nama_coa, a.posisi_dr_cr, b.header, a.nominal FROM jurnal a LEFT JOIN coa b ON b.no_coa = a.no_coa WHERE b.is_neraca = 1 AND a.no_coa = '".$coa->no_coa."' ORDER BY a.nominal DESC";
+                $jurnalItems = $this->db->query($qgetjurnalitem)->result();
+                foreach ($jurnalItems as $k=>$jurnal) {
+                    if ($jurnal->posisi_dr_cr == "k") {
+                        $data["nominal"] -= $jurnal->nominal;
+                    } else {
+                        $data["nominal"] += $jurnal->nominal;
+                    }
+                }
+                if ($coa->saldo_normal == "k") {
+                    $data["nominal"] = 0 - $data["nominal"];
+                }
+                array_push($list, (object)$data);
+            }
+            $q = "SELECT a.no_coa, b.nama_coa, a.posisi_dr_cr, b.header, a.nominal FROM jurnal a LEFT JOIN coa b ON b.no_coa = a.no_coa WHERE b.is_neraca = 1 AND a.no_coa = '1312'";
             $data = [
                 'list' => $list,
-                'periode' => $periode
+                'periode' => $periode,
+                'saldo_awal' => $saldo_awal,
             ];
             $this->template->load('template', 'laporan/neraca_saldo', $data);
         } 
@@ -114,23 +162,143 @@ class Laporan extends CI_Controller
 
     public function laporan_neraca()
     {
+        $saldo_awal = $this->db->query("SELECT * FROM coa WHERE no_coa = '1111'")->result()[0]->saldo_awal;
         $query = $this->db->query("SELECT 
         SUM(nominal) AS debit, 
         (
             SELECT sum(nominal) 
             FROM jurnal 
             WHERE no_coa = '1111'
-            and left(tgl_jurnal, 7) = '2022-06'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
             and posisi_dr_cr = 'k' 
         ) AS kredit
         FROM jurnal
         WHERE no_coa = '1111'
-        and left(tgl_jurnal, 7) = '2022-06'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
         AND posisi_dr_cr = 'd'")->row();
-        $total_kas = $query->debit - $query->kredit;
+        $total_kas = $query->debit - $query->kredit + $saldo_awal;
+
+        $query = $this->db->query("SELECT 
+        SUM(nominal) AS debit, 
+        (
+            SELECT sum(nominal) 
+            FROM jurnal 
+            WHERE no_coa = '1112'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
+            and posisi_dr_cr = 'k' 
+        ) AS kredit
+        FROM jurnal
+        WHERE no_coa = '1112'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
+        AND posisi_dr_cr = 'd'")->row();
+        $persediaanbahanbaku = $query->debit - $query->kredit + $saldo_awal;
+
+        $query = $this->db->query("SELECT 
+        SUM(nominal) AS debit, 
+        (
+            SELECT sum(nominal) 
+            FROM jurnal 
+            WHERE no_coa = '2111'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
+            and posisi_dr_cr = 'k' 
+        ) AS kredit
+        FROM jurnal
+        WHERE no_coa = '2111'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
+        AND posisi_dr_cr = 'd'")->row();
+        $utang = $query->debit - $query->kredit + $saldo_awal;
+
+        $query = $this->db->query("SELECT 
+        SUM(nominal) AS debit, 
+        (
+            SELECT sum(nominal) 
+            FROM jurnal 
+            WHERE no_coa = '1125'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
+            and posisi_dr_cr = 'k' 
+        ) AS kredit
+        FROM jurnal
+        WHERE no_coa = '1125'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
+        AND posisi_dr_cr = 'd'")->row();
+        $akumulasipenyusutankendaraan = $query->kredit + $saldo_awal;
+
+        $query = $this->db->query("SELECT 
+        SUM(nominal) AS debit, 
+        (
+            SELECT sum(nominal) 
+            FROM jurnal 
+            WHERE no_coa = '3111'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
+            and posisi_dr_cr = 'k' 
+        ) AS kredit
+        FROM jurnal
+        WHERE no_coa = '3111'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
+        AND posisi_dr_cr = 'd'")->row();
+        $simpananpokok = $query->kredit + $saldo_awal;
+
+        $query = $this->db->query("SELECT 
+        SUM(nominal) AS debit, 
+        (
+            SELECT sum(nominal) 
+            FROM jurnal 
+            WHERE no_coa = '3112'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
+            and posisi_dr_cr = 'k' 
+        ) AS kredit
+        FROM jurnal
+        WHERE no_coa = '3112'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
+        AND posisi_dr_cr = 'd'")->row();
+        $simpananwajib = $query->kredit + $saldo_awal;
+
+        $query = $this->db->query("SELECT 
+        SUM(nominal) AS debit, 
+        (
+            SELECT sum(nominal) 
+            FROM jurnal 
+            WHERE no_coa = '3113'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
+            and posisi_dr_cr = 'k' 
+        ) AS kredit
+        FROM jurnal
+        WHERE no_coa = '3112'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
+        AND posisi_dr_cr = 'd'")->row();
+        $simpananmasuka = $query->kredit + $saldo_awal;
+
+        $query = $this->db->query("SELECT 
+        SUM(nominal) AS debit, 
+        (
+            SELECT sum(nominal) 
+            FROM jurnal 
+            WHERE no_coa = '3200'
+            and left(tgl_jurnal, 7) = '".date("Y-m")."'
+            and posisi_dr_cr = 'k' 
+        ) AS kredit
+        FROM jurnal
+        WHERE no_coa = '3200'
+        and left(tgl_jurnal, 7) = '".date("Y-m")."'
+        AND posisi_dr_cr = 'd'")->row();
+        $shuditahan = $query->debit - $query->kredit + $saldo_awal;
+        
+        $total_aktifa = $total_kas + $persediaanbahanbaku + $akumulasipenyusutankendaraan;
+        $modal = $total_aktifa - ($utang+$simpananpokok+$simpananwajib+$simpananmasuka);
+        $total_pasiva = $modal+$utang+$simpananpokok+$simpananwajib+$simpananmasuka;
 
         $data = [
-            'kas' => $total_kas
+            'kas' => $total_kas,
+            'persediaanbahanbaku' => $persediaanbahanbaku,
+            'utang' => $utang,
+            "akumulasipenyusutankendaraan"=>$akumulasipenyusutankendaraan,
+            "simpananpokok"=>$simpananpokok,
+            "simpananwajib"=>$simpananwajib,
+            "simpananmasuka"=>$simpananmasuka,
+            "shuditahan"=>$shuditahan,
+            "total_aktifa"=>$total_aktifa,
+            "total_pasiva"=>$total_pasiva,
+            "modal"=>$modal,
         ];
         
         $this->template->load('template', 'laporan/laporan_neraca', $data);
